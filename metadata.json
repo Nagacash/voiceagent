@@ -1,0 +1,7 @@
+{
+  "name": "VoxSaaS - Next-Gen Voice Agents",
+  "description": "A production-ready voice agent SaaS platform allowing companies to create and embed custom AI voice assistants using Gemini's native audio capabilities.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
