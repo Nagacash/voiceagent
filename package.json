@@ -5,19 +5,33 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "tsx watch server/index.ts",
+    "dev:all": "concurrently \"pnpm dev\" \"pnpm dev:api\"",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "openclaw": "openclaw",
+    "openclaw:onboard": "openclaw onboard",
+    "openclaw:gateway": "openclaw gateway"
   },
   "dependencies": {
     "@google/genai": "^1.39.0",
-    "react": "^19.2.4",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "framer-motion": "^12.29.2",
     "lucide-react": "^0.563.0",
+    "openclaw": "^2026.1.30",
+    "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "framer-motion": "^12.29.2"
+    "ws": "^8.19.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^22.14.0",
+    "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.2.1",
+    "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

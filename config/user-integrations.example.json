@@ -1,0 +1,39 @@
+// config/user-integrations.json - Users create this file
+{
+  "voiceAgent": {
+    "model": "whisper-1",
+    "ttsProvider": "openai"
+  },
+  "integrations": {
+    "openclaw": {
+      "enabled": true,
+      "endpoint": "http://127.0.0.1:18789",
+      "token": "user_opensclaw_token_here"
+    },
+    "openai": {
+      "enabled": true,
+      "apiKey": "sk-user-openai-key-here",
+      "model": "gpt-3.5-turbo",
+      "baseUrl": "https://api.openai.com/v1"
+    },
+    "telegram": {
+      "enabled": false,
+      "botToken": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+      "chatId": "@your_username"
+    },
+    "discord": {
+      "enabled": false,
+      "botToken": "user_discord_bot_token",
+      "channelId": "123456789012345678"
+    }
+  },
+  "routing": {
+    "defaultAI": "openclaw",
+    "messaging": ["telegram", "discord"],
+    "fallbackToOpenAI": true
+  },
+  "security": {
+    "storeCredentials": "localStorage",
+    "encryptSensitiveData": true
+  }
+}

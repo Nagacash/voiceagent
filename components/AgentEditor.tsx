@@ -16,7 +16,8 @@ import {
   RefreshCw,
   Trash2,
   CheckCircle2,
-  Cloud
+  Cloud,
+  MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VoiceAgent, ConnectedSource } from '../types';
@@ -45,20 +46,26 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
   const [knowledge, setKnowledge] = useState(initialData?.knowledgeBase || '');
   const [voice, setVoice] = useState<VoiceAgent['voiceName']>(initialData?.voiceName || 'Zephyr');
   const [connectedSources, setConnectedSources] = useState<ConnectedSource[]>(initialData?.connectedSources || []);
+  const [notificationPhone, setNotificationPhone] = useState(initialData?.notificationPhone || '');
+  const [smsEnabled, setSmsEnabled] = useState(initialData?.smsEnabled || false);
   const [isTesting, setIsTesting] = useState(false);
   const [isImporting, setIsImporting] = useState<'drive' | 'notion' | null>(null);
   const [syncingId, setSyncingId] = useState<string | null>(null);
-  const [voiceService] = useState(() => new VoiceService());
 
   const voices: VoiceAgent['voiceName'][] = ['Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir'];
 
+  const voiceServiceRef = React.useRef<VoiceService | null>(null);
+
   const toggleTest = async () => {
     if (isTesting) {
-      await voiceService.stopSession();
+      await voiceServiceRef.current?.stopSession();
       setIsTesting(false);
     } else {
       setIsTesting(true);
       try {
+        if (!voiceServiceRef.current) {
+          voiceServiceRef.current = new VoiceService();
+        }
         const fullInstruction = `
           ${prompt}
           
@@ -67,7 +74,7 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
           
           Strictly follow the persona and use the knowledge provided.
         `;
-        await voiceService.startSession({
+        await voiceServiceRef.current.startSession({
           systemInstruction: fullInstruction || "You are a helpful assistant.",
           voiceName: voice
         }, () => {
@@ -107,15 +114,15 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
       <div className="flex items-center justify-between mb-8">
         <button 
           onClick={onCancel}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group cursor-pointer focus:ring-2 focus:ring-lime-400 focus:outline-none rounded-lg min-h-[44px] px-2"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> 
           <span className="font-heading font-semibold">Back to Dashboard</span>
         </button>
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => onSave({ name, systemPrompt: prompt, knowledgeBase: knowledge, voiceName: voice, connectedSources })}
-            className="px-6 py-3 bg-lime-400 text-black rounded-xl font-heading font-bold flex items-center gap-2 shadow-lg shadow-lime-400/20 hover:bg-lime-300 transition-all"
+            onClick={() => onSave({ name, systemPrompt: prompt, knowledgeBase: knowledge, voiceName: voice, connectedSources, notificationPhone, smsEnabled })}
+            className="px-6 py-3 bg-lime-400 text-black rounded-xl font-heading font-bold flex items-center gap-2 shadow-lg shadow-lime-400/20 hover:bg-lime-300 transition-all cursor-pointer focus:ring-2 focus:ring-lime-400 focus:ring-offset-2 focus:ring-offset-black focus:outline-none min-h-[44px]"
           >
             <Save className="w-5 h-5" /> Save Configuration
           </button>
@@ -131,12 +138,13 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-400 block mb-2">Agent Name</label>
+                <label htmlFor="agent-name" className="text-sm font-medium text-gray-400 block mb-2">Agent Name</label>
                 <input 
+                  id="agent-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-lime-400 outline-none font-body transition-all"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-lime-400 focus:outline-none font-body transition-all min-h-[44px]"
                   placeholder="e.g. Support Specialist"
                 />
               </div>
@@ -148,12 +156,13 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
               <Sparkles className="text-lime-400 w-5 h-5" /> Persona & System Prompt
             </h3>
             <div>
-              <label className="text-sm font-medium text-gray-400 block mb-2 font-heading uppercase tracking-widest text-[10px] font-bold">System Instructions</label>
+              <label htmlFor="system-prompt" className="text-sm font-medium text-gray-400 block mb-2 font-heading uppercase tracking-widest text-[10px] font-bold">System Instructions</label>
               <textarea 
+                id="system-prompt"
                 rows={6}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-lime-400 outline-none resize-none text-sm leading-relaxed font-body"
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-lime-400 focus:outline-none resize-none text-sm leading-relaxed font-body"
                 placeholder="Act as a friendly concierge..."
               />
             </div>
@@ -173,14 +182,14 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
               <div className="flex items-center gap-4 mb-4">
                 <button 
                   onClick={() => setIsImporting('drive')}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-sm font-bold transition-all group"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-sm font-bold transition-all group cursor-pointer focus:ring-2 focus:ring-lime-400 focus:outline-none min-h-[44px]"
                 >
                   <Cloud className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
                   Connect Google Drive
                 </button>
                 <button 
                   onClick={() => setIsImporting('notion')}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-sm font-bold transition-all group"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-sm font-bold transition-all group cursor-pointer focus:ring-2 focus:ring-lime-400 focus:outline-none min-h-[44px]"
                 >
                   <Database className="w-4 h-4 text-gray-100 group-hover:scale-110 transition-transform" />
                   Connect Notion
@@ -202,7 +211,8 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
                       </div>
                       <button 
                         onClick={() => removeSource(source.id)}
-                        className="p-1.5 text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                        aria-label={`Remove ${source.name}`}
+                        className="p-2.5 text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer focus:ring-2 focus:ring-lime-400 focus:outline-none focus:opacity-100 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -212,13 +222,14 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
               )}
 
               <div>
-                <label className="text-sm font-medium text-gray-400 block mb-2 font-heading uppercase tracking-widest text-[10px] font-bold">Raw Knowledge Context</label>
+                <label htmlFor="knowledge-base" className="text-sm font-medium text-gray-400 block mb-2 font-heading uppercase tracking-widest text-[10px] font-bold">Raw Knowledge Context</label>
                 <div className="relative">
                   <textarea 
+                    id="knowledge-base"
                     rows={8}
                     value={knowledge}
                     onChange={(e) => setKnowledge(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-lime-400 outline-none resize-none text-sm font-mono leading-relaxed"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-lime-400 focus:outline-none resize-none text-sm font-mono leading-relaxed"
                     placeholder="Product details, pricing, FAQs..."
                   />
                   <div className="absolute top-3 right-3 opacity-20 pointer-events-none">
@@ -226,6 +237,50 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+
+          {/* SMS Notifications Section */}
+          <section className="glass rounded-3xl p-8 border border-purple-400/20 bg-purple-400/5">
+            <h3 className="text-xl font-heading font-bold mb-6 flex items-center gap-2">
+              <MessageSquare className="text-purple-400 w-5 h-5" /> SMS Notifications
+            </h3>
+            <p className="text-sm text-gray-400 mb-6">Get SMS summaries after each voice call with this agent.</p>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label htmlFor="sms-toggle" className="text-sm font-medium">Enable SMS Summaries</label>
+                <button
+                  id="sms-toggle"
+                  onClick={() => setSmsEnabled(!smsEnabled)}
+                  className={`w-12 h-7 rounded-full transition-all cursor-pointer focus:ring-2 focus:ring-purple-400 focus:outline-none ${
+                    smsEnabled ? 'bg-purple-500' : 'bg-white/10'
+                  }`}
+                >
+                  <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                    smsEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+
+              {smsEnabled && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-2"
+                >
+                  <label htmlFor="notification-phone" className="text-xs font-heading font-bold text-gray-400 uppercase tracking-widest">Your Phone Number</label>
+                  <input
+                    id="notification-phone"
+                    type="tel"
+                    value={notificationPhone}
+                    onChange={(e) => setNotificationPhone(e.target.value)}
+                    placeholder="+1 234 567 8900"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 min-h-[44px] focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                  />
+                  <p className="text-xs text-gray-500">You'll receive a summary SMS after each call ends.</p>
+                </motion.div>
+              )}
             </div>
           </section>
         </div>
@@ -241,7 +296,8 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
                 <button 
                   key={v}
                   onClick={() => setVoice(v)}
-                  className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                  aria-pressed={voice === v}
+                  className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer focus:ring-2 focus:ring-lime-400 focus:outline-none min-h-[44px] ${
                     voice === v 
                     ? 'bg-lime-400/10 border-lime-400 text-lime-400 shadow-[0_0_15px_rgba(163,230,53,0.1)]' 
                     : 'bg-white/5 border-white/5 text-gray-400 hover:border-white/20'
@@ -269,7 +325,8 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
               
               <button 
                 onClick={toggleTest}
-                className={`w-full py-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all duration-300 ${
+                aria-label={isTesting ? 'Stop voice session' : 'Start voice session'}
+                className={`w-full py-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all duration-300 cursor-pointer focus:ring-2 focus:ring-lime-400 focus:outline-none min-h-[44px] ${
                   isTesting 
                   ? 'bg-red-500/20 text-red-400 border border-red-500/50 scale-95 shadow-[0_0_30px_rgba(239,68,68,0.2)]' 
                   : 'bg-lime-400 text-black shadow-xl shadow-lime-400/10 hover:scale-[1.02]'
@@ -301,13 +358,19 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
       {/* MCP Simulation Modals */}
       <AnimatePresence>
         {isImporting && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+          <div 
+            role="dialog" 
+            aria-modal="true" 
+            aria-labelledby="modal-title"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-6"
+          >
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/90 backdrop-blur-md"
               onClick={() => setIsImporting(null)}
+              aria-hidden="true"
             />
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -320,7 +383,7 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
                   {isImporting === 'drive' ? <Cloud className="text-white w-8 h-8" /> : <Database className="text-black w-8 h-8" />}
                 </div>
                 <div>
-                  <h3 className="text-2xl font-heading font-bold">Connect {isImporting === 'drive' ? 'Google Drive' : 'Notion'}</h3>
+                  <h3 id="modal-title" className="text-2xl font-heading font-bold">Connect {isImporting === 'drive' ? 'Google Drive' : 'Notion'}</h3>
                   <p className="text-gray-400 text-sm">Select files to inject into your agent's memory.</p>
                 </div>
               </div>
@@ -331,7 +394,7 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
                     key={file.id}
                     disabled={!!syncingId}
                     onClick={() => handleImport(isImporting, file.name, file.content)}
-                    className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all group disabled:opacity-50"
+                    className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all group disabled:opacity-50 cursor-pointer focus:ring-2 focus:ring-lime-400 focus:outline-none min-h-[44px]"
                   >
                     <div className="flex items-center gap-4">
                       <FileText className="w-5 h-5 text-gray-500 group-hover:text-lime-400 transition-colors" />
@@ -349,7 +412,7 @@ export const AgentEditor: React.FC<AgentEditorProps> = ({ initialData, onSave, o
               <div className="flex justify-end">
                 <button 
                   onClick={() => setIsImporting(null)}
-                  className="px-6 py-2 text-gray-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px]"
+                  className="px-6 py-2 text-gray-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px] cursor-pointer focus:ring-2 focus:ring-lime-400 focus:outline-none rounded-lg min-h-[44px]"
                 >
                   Cancel
                 </button>

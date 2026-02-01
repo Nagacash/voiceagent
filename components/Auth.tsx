@@ -36,7 +36,8 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onBack }) => {
       <div className="w-full max-w-md">
         <button 
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors group"
+          aria-label="Go back to home page"
+          className="flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors group cursor-pointer min-h-[44px] focus:ring-2 focus:ring-lime-400 focus:outline-none rounded-lg px-2 -ml-2"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
         </button>
@@ -54,15 +55,16 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onBack }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-400">Company Name</label>
+              <label htmlFor="company-name" className="text-sm font-medium text-gray-400">Company Name</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input 
+                  id="company-name"
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-lime-400 outline-none transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-lime-400 focus:outline-none transition-all"
                   placeholder="Acme Inc"
                 />
               </div>
@@ -70,30 +72,32 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onBack }) => {
           )}
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-400">Email Address</label>
+            <label htmlFor="email" className="text-sm font-medium text-gray-400">Email Address</label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input 
+                id="email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-lime-400 outline-none transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-lime-400 focus:outline-none transition-all"
                 placeholder="name@company.com"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-400">Password</label>
+            <label htmlFor="password" className="text-sm font-medium text-gray-400">Password</label>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input 
+                id="password"
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-lime-400 outline-none transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-lime-400 focus:outline-none transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -101,7 +105,7 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onBack }) => {
 
           <button 
             type="submit"
-            className="w-full py-4 bg-lime-400 text-black rounded-xl font-bold hover:bg-lime-300 transition-colors mt-4"
+            className="w-full py-4 min-h-[44px] bg-lime-400 text-black rounded-xl font-bold hover:bg-lime-300 transition-colors mt-4 cursor-pointer focus:ring-2 focus:ring-lime-400 focus:ring-offset-2 focus:ring-offset-black focus:outline-none"
           >
             {mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>
@@ -111,7 +115,7 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onBack }) => {
           {mode === 'login' ? "Don't have an account?" : "Already have an account?"}
           <button 
             onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-            className="ml-2 text-lime-400 font-semibold hover:underline"
+            className="ml-2 text-lime-400 font-semibold hover:underline hover:text-lime-300 transition-colors cursor-pointer min-h-[44px] px-1 focus:ring-2 focus:ring-lime-400 focus:outline-none rounded"
           >
             {mode === 'login' ? 'Register here' : 'Login here'}
           </button>
